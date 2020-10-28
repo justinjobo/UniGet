@@ -8,6 +8,7 @@
 import base64
 import json
 import requests
+import os
 
 #### START IMPORT API TOKEN ####
 #You can find this under User Management > API tokens
@@ -29,6 +30,11 @@ except IOError:
     exit()
 url = str(url.read())
 #### END IMPORT URL ####
+
+# Create configs folder if it doesn't exist:
+if not os.path.exists('configs'):
+    os.makedirs('configs')
+
 
 ids=[]
 descriptions=[]
