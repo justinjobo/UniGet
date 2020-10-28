@@ -3,5 +3,7 @@ Run with sudo priviledges as this script will need to access /etc/hosts which wi
 Simply ssh to the config's filename to ssh to the address of the device.
 
 Requirements:
+
 -token.txt file with the API token
+
 -url.txt file with the URL of Unimus
