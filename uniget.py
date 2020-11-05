@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 
 # This script will download all of the latest configs from Unimus allowing use of linux search functions rather than only Unimus ones.
-# Run with sudo priviledges as this script will need to access /etc/hosts
-# Simply ssh to the config's filename to ssh to the address of the device
+# Added Feature - Simply type "uniget FILENAME" to ssh to the address of the device using the config's filename
 # Written by Justin Thompson // 2020
 
+import sys
 import base64
 import json
 import requests
 import os
+import subprocess
 
 #### START IMPORT API TOKEN ####
 #You can find this under User Management > API tokens
@@ -50,6 +51,24 @@ def get_totalpages(uri, headers):
     totalpages = devices['paginator']['totalPages']
     return totalpages
 
+def resolve_hostname(input):
+    i = 0
+    try:
+        filenames = open('./filenames', 'r+')
+    except IOError:
+        print('[ERR] Run uniget.py first, then try again.')
+    filenames = filenames.read()
+    try:
+        addresses = open('./addresses', 'r+')
+    except IOError:
+        print('[ERR] Run uniget.py first, then try again.')
+    addresses = addresses.read()
+    addresses = addresses.splitlines()
+    for filename in filenames.splitlines():
+        if filename == input:
+            print(addresses[i])
+        i = i + 1
+
 def get_ids_and_descriptions():
     page=0
     device=0
@@ -57,12 +76,16 @@ def get_ids_and_descriptions():
     headers = {"Authorization": "Bearer " + token, "Accept": "application/json"}
     totalpages = get_totalpages(uri, headers) #finds the total number of pages using a 50 size limit (50 is the maximum Unimus will allow)
     try:
-        hosts = open('/etc/hosts', 'w+')
-    except PermissionError:
-        print('Exiting. Please run with sudo priviledges.')
-        exit()
-    hosts.truncate(0)
-    while page <= totalpages: #loads all of the ids into the ids array + all the descriptions into the descriptions array + writes /etc/hosts with the address and description (substituting spaces with hyphens) so we can easily access the device using the filename
+        addresses = open('./addresses', 'r+')
+    except IOError:
+        addresses = open('./addresses', 'w+')
+    addresses.truncate(0)
+    try:
+        filenames = open('./filenames', 'r+')
+    except IOError:
+        filenames = open('./filenames', 'w+')
+    filenames.truncate(0)
+    while page <= totalpages: #loads all of the ids into the ids array + all the descriptions into the descriptions array + writes files with the addresses and descriptions (substituting spaces with hyphens) so we can easily lookup the address of the device using the filename
         uri = (url + "//api/v2/devices?page=" + str(page) + "&size=50")
         response = requests.get(uri, headers=headers)
         devices = response.json()
@@ -71,9 +94,9 @@ def get_ids_and_descriptions():
             description = devices['data'][device]['description']
             description = description.replace(' ', '-')
             descriptions.append(description)
-            hosts.write('\n' + devices['data'][device]['address'] + ' ' + description)
+            addresses.write(devices['data'][device]['address'] + '\n')
+            filenames.write(description + '\n')
         page = page + 1
-    hosts.close()
 
 def get_configs(): #decrypts the base64 config (the "bytes" value) and writes it to a file in the configs folder. Skips devices that dont have a config.
     i = 0
@@ -100,10 +123,14 @@ def get_configs(): #decrypts the base64 config (the "bytes" value) and writes it
             i = i + 1
             continue
 
-
-print("Welcome to UniGet. This program will download the latest config files of all devices in Unimus. Must be run with sudo priviledges.\n")
-print("Fetching info...")
-get_ids_and_descriptions()
-print("Saving configs and updating /etc/hosts file...")
-get_configs()
-print("Done! You can ssh to a device using the filename.")
+if len(sys.argv) == 1:
+    print("Welcome to UniGet. This program will download the latest config files of all devices in Unimus.\n")
+    print("Fetching info...")
+    get_ids_and_descriptions()
+    print("Saving configs and updating hostname resolution files...")
+    get_configs()
+    print("Done!")
+elif len(sys.argv) == 2:
+    resolve_hostname(sys.argv[1])
+else:
+    print('[ERR] Too many arguments.\nExamples:\n./uniget.py my-filename\n./uniget.py')

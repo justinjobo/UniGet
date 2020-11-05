@@ -1,6 +1,7 @@
 UniGet will download all of the latest configs from Unimus allowing use of linux search functions rather than only Unimus ones.
 
-Run with sudo priviledges as this script will need to access /etc/hosts which will substitute the addresses with the filenames (the filenames are drawn from their description in Unimus). Simply ssh to the config's filename to ssh to the device.
+Run with the a config filename following to get the associated address.
+* Example: ./uniget.py my-filename
 
 Requirements:
 
