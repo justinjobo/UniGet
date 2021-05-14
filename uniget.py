@@ -122,6 +122,9 @@ def get_configs(): #decrypts the base64 config (the "bytes" value) and writes it
         except TypeError:
             i = i + 1
             continue
+        except UnicodeDecodeError:
+            i = i + 1
+            continue
 
 if len(sys.argv) == 1:
     print("Welcome to UniGet. This program will download the latest config files of all devices in Unimus.\n")
