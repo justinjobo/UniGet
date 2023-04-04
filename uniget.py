@@ -43,9 +43,9 @@ configs=[]
 
 def get_totalpages(uri, headers):
     try:
-        response = requests.get(uri, headers=headers)
+        response = requests.get(uri, headers=headers) # To disable SSL verification, pass this parameter: verify=False
     except requests.exceptions.ConnectionError:
-        print('Error opening url.txt or token.txt - please make sure there is only 1 line in each file.')
+        print('Connection Error! Can you ping the URL? Also, please make sure there is only 1 line in each file url.txt and token.txt with no EOL marker.')
         exit()
     devices = response.json()
     totalpages = devices['paginator']['totalPages']
@@ -87,7 +87,7 @@ def get_ids_and_descriptions():
     filenames.truncate(0)
     while page <= totalpages: #loads all of the ids into the ids array + all the descriptions into the descriptions array + writes files with the addresses and descriptions (substituting spaces with hyphens) so we can easily lookup the address of the device using the filename
         uri = (url + "//api/v2/devices?page=" + str(page) + "&size=50")
-        response = requests.get(uri, headers=headers)
+        response = requests.get(uri, headers=headers) # To disable SSL verification, pass this parameter: verify=False
         devices = response.json()
         for device in range(len(devices['data'])):
             ids.append(devices['data'][device]['id'])
@@ -103,7 +103,7 @@ def get_configs(): #decrypts the base64 config (the "bytes" value) and writes it
     headers = {"Authorization": "Bearer " + token, "Accept": "application/json"}
     for device in ids:
         uri = (url + "//api/v2/devices/" + str(device) + "/backups/latest")
-        response = requests.get(uri, headers=headers)
+        response = requests.get(uri, headers=headers) # To disable SSL verification, pass this parameter: verify=False
         devicedata = response.json()
         try:
             config = devicedata['data']['bytes']
